@@ -1,25 +1,21 @@
 import { Request, Response } from 'express';
-import { getRoutes, createRoute } from '../services/postgisQueries';
-// Get all routes
+import { createRoute as createRouteInDB, getAllRoutes as fetchAllRoutesFromDB } from '../services/postgisQueries';
+
 export const getAllRoutes = async (req: Request, res: Response) => {
   try {
-    const routes = await getRoutes();
-    res.json(routes);
+    const routes = await fetchAllRoutesFromDB();
+    res.status(200).json(routes);
   } catch (error) {
-    console.error('Error fetching routes:', error);
-    res.status(500).send('Server Error');
+    res.status(500).json({ error: 'Error fetching routes' });
   }
 };
 
-// Create a new route
 export const addRoute = async (req: Request, res: Response) => {
-  const { routeName, coordinates } = req.body;
-  
   try {
-    const route = await createRoute(routeName, coordinates);
+    const { routeName, geom } = req.body;
+    const route = await createRouteInDB(routeName, geom);
     res.status(201).json(route);
   } catch (error) {
-    console.error('Error creating route:', error);
-    res.status(500).send('Server Error');
+    res.status(500).json({ error: 'Error creating route' });
   }
 };

@@ -11,28 +11,24 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.addRoute = exports.getAllRoutes = void 0;
 const postgisQueries_1 = require("../services/postgisQueries");
-// Get all routes
 const getAllRoutes = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const routes = yield (0, postgisQueries_1.getRoutes)();
-        res.json(routes);
+        const routes = yield (0, postgisQueries_1.getAllRoutes)();
+        res.status(200).json(routes);
     }
     catch (error) {
-        console.error('Error fetching routes:', error);
-        res.status(500).send('Server Error');
+        res.status(500).json({ error: 'Error fetching routes' });
     }
 });
 exports.getAllRoutes = getAllRoutes;
-// Create a new route
 const addRoute = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { routeName, coordinates } = req.body;
     try {
-        const route = yield (0, postgisQueries_1.createRoute)(routeName, coordinates);
+        const { routeName, geom } = req.body;
+        const route = yield (0, postgisQueries_1.createRoute)(routeName, geom);
         res.status(201).json(route);
     }
     catch (error) {
-        console.error('Error creating route:', error);
-        res.status(500).send('Server Error');
+        res.status(500).json({ error: 'Error creating route' });
     }
 });
 exports.addRoute = addRoute;

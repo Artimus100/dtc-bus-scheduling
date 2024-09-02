@@ -8,32 +8,34 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getRoutesNearLocation = exports.createRoute = exports.getRoutes = void 0;
-const client_1 = require("@prisma/client");
-const prisma = new client_1.PrismaClient();
-// Get all routes from the database
-const getRoutes = () => __awaiter(void 0, void 0, void 0, function* () {
-    return yield prisma.$queryRaw `
-    SELECT id, route_name AS "routeName", ST_AsText(geom) AS geom
-    FROM "Route";
-  `;
-});
-exports.getRoutes = getRoutes;
-// Create a new route in the database
-const createRoute = (routeName, coordinates) => __awaiter(void 0, void 0, void 0, function* () {
-    return yield prisma.$executeRaw `
-    INSERT INTO "Route" ("routeName", "geom")
-    VALUES (${routeName}, ST_GeomFromText(${coordinates}, 4326))
-    RETURNING id, route_name AS "routeName", ST_AsText(geom) AS geom;
-  `;
+exports.getAllRoutes = exports.createRoute = void 0;
+const db_1 = __importDefault(require("../utils/db"));
+const createRoute = (routeName, geom) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const route = yield db_1.default.$executeRaw `
+      INSERT INTO "Route" ("routeName", "geom")
+      VALUES (${routeName}, ST_GeomFromText(${geom}::text, 4326))
+    `;
+        return route;
+    }
+    catch (error) {
+        console.error('Error creating route:', error);
+        throw error;
+    }
 });
 exports.createRoute = createRoute;
-// Function to get routes near a given location
-const getRoutesNearLocation = (latitude, longitude, radius) => __awaiter(void 0, void 0, void 0, function* () {
-    return yield prisma.$queryRaw `
-      SELECT * FROM "Route"
-      WHERE ST_DWithin(geom, ST_MakePoint(${longitude}, ${latitude})::geography, ${radius})
-    `;
+const getAllRoutes = () => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const routes = yield db_1.default.$queryRaw `SELECT * FROM "Route"`;
+        return routes;
+    }
+    catch (error) {
+        console.error('Error fetching routes:', error);
+        throw error;
+    }
 });
-exports.getRoutesNearLocation = getRoutesNearLocation;
+exports.getAllRoutes = getAllRoutes;
