@@ -16,11 +16,13 @@ exports.getAllRoutes = exports.createRoute = void 0;
 const db_1 = __importDefault(require("../utils/db"));
 const createRoute = (routeName, geom) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const route = yield db_1.default.$executeRaw `
-      INSERT INTO "Route" ("routeName", "geom")
-      VALUES (${routeName}, ST_GeomFromText(${geom}::text, 4326))
-    `;
-        return route;
+        // Update the function call to use the correct SRID in PostGIS
+        const result = yield db_1.default.$executeRaw `
+        INSERT INTO "route" ("routeName", "geom")
+        VALUES (${routeName}, ST_GeomFromText(${geom}, 4326))
+        RETURNING *;
+      `;
+        return result;
     }
     catch (error) {
         console.error('Error creating route:', error);
@@ -30,7 +32,7 @@ const createRoute = (routeName, geom) => __awaiter(void 0, void 0, void 0, funct
 exports.createRoute = createRoute;
 const getAllRoutes = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const routes = yield db_1.default.$queryRaw `SELECT * FROM "Route"`;
+        const routes = yield db_1.default.$queryRaw `SELECT * FROM "route"`;
         return routes;
     }
     catch (error) {

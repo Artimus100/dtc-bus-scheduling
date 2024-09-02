@@ -4,7 +4,7 @@ export const createRoute = async (routeName: string, geom: string) => {
     try {
       // Update the function call to use the correct SRID in PostGIS
       const result = await prisma.$executeRaw`
-        INSERT INTO "Route" ("routeName", "geom")
+        INSERT INTO "route" ("routeName", "geom")
         VALUES (${routeName}, ST_GeomFromText(${geom}, 4326))
         RETURNING *;
       `;
@@ -17,7 +17,7 @@ export const createRoute = async (routeName: string, geom: string) => {
 
 export const getAllRoutes = async () => {
   try {
-    const routes = await prisma.$queryRaw`SELECT * FROM "Route"`;
+    const routes = await prisma.$queryRaw`SELECT * FROM "route"`;
     return routes;
   } catch (error) {
     console.error('Error fetching routes:', error);

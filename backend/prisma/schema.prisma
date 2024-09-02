@@ -12,12 +12,12 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-model Bus {
+model bus {
   id           Int    @id @default(autoincrement())
   licensePlate String
 }
 
-model Route {
+model route {
   id        Int     @id @default(autoincrement())
   routeName String
   geom      Bytes 
