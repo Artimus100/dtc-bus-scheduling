@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -12,13 +6,39 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-model bus {
-  id           Int    @id @default(autoincrement())
-  licensePlate String
+
+model Route {
+  id          String   @id @default(uuid())
+  name        String
+  coordinates String   // Assuming you're storing GeoJSON as a string
+  buses       Bus[]
 }
 
-model route {
-  id        Int     @id @default(autoincrement())
-  routeName String
-  geom      Bytes 
+model Bus {
+  id          String      @id @default(uuid())
+  number      String
+  routeId     String?
+  route       Route?      @relation(fields: [routeId], references: [id])
+
+  crews       Crew[]
+  assignments Assignment[]
+}
+
+model Crew {
+  id          String      @id @default(uuid())
+  name        String
+  busId       String?
+  bus         Bus?        @relation(fields: [busId], references: [id])
+
+  assignments Assignment[]
+}
+
+model Assignment {
+  id          String   @id @default(uuid())
+  crewId      String
+  busId       String
+  startTime   DateTime
+  endTime     DateTime
+  crew        Crew      @relation(fields: [crewId], references: [id])
+  bus         Bus       @relation(fields: [busId], references: [id])
 }

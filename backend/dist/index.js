@@ -5,15 +5,27 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
-const routecontroller_1 = require("./controllers/routecontroller");
+const routeontroller_1 = require("./controllers/routeontroller");
+const schedulingServices_1 = require("./services/schedulingServices");
+const busController_1 = require("./controllers/busController");
+const crewController_1 = require("./controllers/crewController");
+const assignmentController_1 = require("./controllers/assignmentController");
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 3000;
 // Middleware
 app.use((0, cors_1.default)());
 app.use(express_1.default.json());
 // Routes
-app.get('/api/routes', routecontroller_1.getAllRoutes);
-app.post('/api/routes', routecontroller_1.addRoute);
+app.post('/api/routes', routeontroller_1.createNewRoute);
+app.get('/api/routes', routeontroller_1.listRoutes);
+app.get('/api/routes/overlaps', routeontroller_1.checkRouteOverlaps);
+app.post('/api/schedule/linked', schedulingServices_1.linkedDutyScheduling);
+app.post('/api/schedule/unlinked', schedulingServices_1.unlinkedDutyScheduling);
+app.post('/api/buses', busController_1.createNewBus);
+// app.post('/api/assignCrew', assignCrew);
+app.post('/api/linkBus', busController_1.linkBus);
+app.post('/api/crew', crewController_1.createNewCrew);
+app.post('/api/assignments', assignmentController_1.createAssignment);
 // Start the server
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
