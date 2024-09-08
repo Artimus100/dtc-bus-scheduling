@@ -13,13 +13,13 @@ exports.createAssignment = void 0;
 const assignmentService_1 = require("../services/assignmentService");
 const createAssignment = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { crewId, busId, startTime, endTime } = req.body;
-        const assignment = yield (0, assignmentService_1.assignCrewToBus)(crewId, busId, new Date(startTime), new Date(endTime));
+        const { crewId, busId, routeId, startTime, endTime } = req.body;
+        const assignment = yield (0, assignmentService_1.assignCrewToBus)(crewId, busId, routeId, new Date(startTime), new Date(endTime));
         res.status(201).json(assignment);
     }
     catch (error) {
         console.error('Error in createAssignment:', error);
-        res.status(500).json({ error: 'Error assigning crew to bus' });
+        res.status(500).json({ error: 'Error assigning crew, bus, and route' });
     }
 });
 exports.createAssignment = createAssignment;

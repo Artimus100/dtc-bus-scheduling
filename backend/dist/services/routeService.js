@@ -9,15 +9,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.detectRouteOverlaps = exports.getRoutes = exports.createRoute = void 0;
+exports.findRoutesIntersectingWith = exports.getRoutes = exports.createRoute = void 0;
 const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
 // Store and query geospatial data using PostGIS
-const createRoute = (name, coordinates) => __awaiter(void 0, void 0, void 0, function* () {
+const createRoute = (name, geoJsonPath) => __awaiter(void 0, void 0, void 0, function* () {
     const route = yield prisma.route.create({
         data: {
-            name,
-            coordinates,
+            name: name,
+            path: geoJsonPath, // Store GeoJSON string
         },
     });
     return route;
@@ -28,14 +28,22 @@ const getRoutes = () => __awaiter(void 0, void 0, void 0, function* () {
 });
 exports.getRoutes = getRoutes;
 // Algorithm to detect route overlaps
-const detectRouteOverlaps = () => __awaiter(void 0, void 0, void 0, function* () {
-    // Example query using PostGIS functions
-    const overlaps = yield prisma.$queryRaw(client_1.Prisma.sql `
-            SELECT r1.name AS route1, r2.name AS route2
-            FROM "Route" r1, "Route" r2
-            WHERE ST_Overlaps(r1.coordinates::geometry, r2.coordinates::geometry)
-            AND r1.id <> r2.id;
-        `);
-    return overlaps;
+const findRoutesIntersectingWith = (geoJson) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const intersectingRoutes = yield prisma.$queryRaw `
+          SELECT r1.id AS route1_id, r2.id AS route2_id
+          FROM "Route" AS r1, "Route" AS r2
+          WHERE ST_Intersects(
+              ST_GeomFromGeoJSON(${geoJson}),
+              ST_GeomFromGeoJSON(r2.path)
+          ) AND r1.id <> r2.id;
+      `;
+        console.log(intersectingRoutes);
+        return intersectingRoutes;
+    }
+    catch (error) {
+        console.error('Error finding intersecting routes:', error);
+        throw error; // Re-throw error to be caught by the handler
+    }
 });
-exports.detectRouteOverlaps = detectRouteOverlaps;
+exports.findRoutesIntersectingWith = findRoutesIntersectingWith;

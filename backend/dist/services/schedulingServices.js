@@ -15,16 +15,18 @@ const prisma = new client_1.PrismaClient();
 const linkedDutyScheduling = () => __awaiter(void 0, void 0, void 0, function* () {
     const crews = yield prisma.crew.findMany();
     const buses = yield prisma.bus.findMany();
-    // Example greedy algorithm implementation
+    const routes = yield prisma.route.findMany(); // Fetch available routes
     const assignments = [];
     for (let crew of crews) {
         const bus = buses.find(bus => !assignments.some(assign => assign.busId === bus.id));
-        if (bus) {
+        const route = routes.find(route => !assignments.some(assign => assign.routeId === route.id));
+        if (bus && route) {
             assignments.push({
-                crewId: crew.id, // Use string ID
-                busId: bus.id, // Use string ID
+                crewId: crew.id,
+                busId: bus.id,
+                routeId: route.id, // Assign the route ID
                 startTime: new Date(),
-                endTime: new Date(Date.now() + 8 * 60 * 60 * 1000), // Example shift duration
+                endTime: new Date(Date.now() + 8 * 60 * 60 * 1000), // Example 8-hour shift
             });
         }
     }
@@ -38,23 +40,25 @@ exports.linkedDutyScheduling = linkedDutyScheduling;
 const unlinkedDutyScheduling = () => __awaiter(void 0, void 0, void 0, function* () {
     const crews = yield prisma.crew.findMany();
     const buses = yield prisma.bus.findMany();
-    // Queue-based system for rotations
-    const queue = [...crews];
+    const routes = yield prisma.route.findMany(); // Fetch available routes
+    const queue = [...crews]; // Queue-based system for rotating crews
     const assignments = [];
     for (let bus of buses) {
         if (queue.length > 0) {
             const crew = queue.shift();
-            if (crew) {
+            const route = routes[Math.floor(Math.random() * routes.length)]; // Randomly assign a route to the bus
+            if (crew && route) {
                 assignments.push({
-                    crewId: crew.id, // Use string ID
-                    busId: bus.id, // Use string ID
+                    crewId: crew.id,
+                    busId: bus.id,
+                    routeId: route.id, // Assign the route ID
                     startTime: new Date(),
-                    endTime: new Date(Date.now() + 2 * 60 * 60 * 1000), // Example shorter trip duration
+                    endTime: new Date(Date.now() + 2 * 60 * 60 * 1000), // Example shorter 2-hour trip
                 });
-                // Rotate the crew back into the queue after a rest period
+                // Rotate the crew back into the queue after their rest period
                 setTimeout(() => {
                     queue.push(crew);
-                }, 30 * 60 * 1000); // Example rest period
+                }, 30 * 60 * 1000); // Example 30-minute rest period
             }
         }
     }

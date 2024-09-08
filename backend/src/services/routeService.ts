@@ -3,14 +3,14 @@ import { PrismaClient, Prisma } from '@prisma/client';
 const prisma = new PrismaClient();
 
 // Store and query geospatial data using PostGIS
-export const createRoute = async (name: string, coordinates: string) => {
-    const route = await prisma.route.create({
-        data: {
-            name,
-            coordinates,
-        },
-    });
-    return route;
+export const createRoute = async (name: string, geoJsonPath: string) => {
+  const route = await prisma.route.create({
+    data: {
+      name: name,
+      path: geoJsonPath,  // Store GeoJSON string
+    },
+  });
+  return route;
 };
 
 export const getRoutes = async () => {
@@ -18,15 +18,20 @@ export const getRoutes = async () => {
 };
 
 // Algorithm to detect route overlaps
-export const detectRouteOverlaps = async () => {
-    // Example query using PostGIS functions
-    const overlaps = await prisma.$queryRaw(
-        Prisma.sql`
-            SELECT r1.name AS route1, r2.name AS route2
-            FROM "Route" r1, "Route" r2
-            WHERE ST_Overlaps(r1.coordinates::geometry, r2.coordinates::geometry)
-            AND r1.id <> r2.id;
-        `
-    );
-    return overlaps;
+export const findRoutesIntersectingWith = async (geoJson: string) => {
+  try {
+      const intersectingRoutes = await prisma.$queryRaw`
+          SELECT r1.id AS route1_id, r2.id AS route2_id
+          FROM "Route" AS r1, "Route" AS r2
+          WHERE ST_Intersects(
+              ST_GeomFromGeoJSON(${geoJson}),
+              ST_GeomFromGeoJSON(r2.path)
+          ) AND r1.id <> r2.id;
+      `;
+      console.log(intersectingRoutes);
+      return intersectingRoutes;
+  } catch (error) {
+      console.error('Error finding intersecting routes:', error);
+      throw error;  // Re-throw error to be caught by the handler
+  }
 };

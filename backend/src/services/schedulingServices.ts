@@ -5,19 +5,21 @@ const prisma = new PrismaClient();
 export const linkedDutyScheduling = async () => {
     const crews = await prisma.crew.findMany();
     const buses = await prisma.bus.findMany();
+    const routes = await prisma.route.findMany();  // Fetch available routes
     
-    // Example greedy algorithm implementation
-    const assignments: { crewId: string; busId: string; startTime: Date; endTime: Date; }[] = [];
+    const assignments: { crewId: string; busId: string; routeId: string; startTime: Date; endTime: Date; }[] = [];
 
     for (let crew of crews) {
         const bus = buses.find(bus => !assignments.some(assign => assign.busId === bus.id));
+        const route = routes.find(route => !assignments.some(assign => assign.routeId === route.id));
 
-        if (bus) {
+        if (bus && route) {
             assignments.push({
-                crewId: crew.id,  // Use string ID
-                busId: bus.id,    // Use string ID
+                crewId: crew.id,
+                busId: bus.id,
+                routeId: route.id,   // Assign the route ID
                 startTime: new Date(),
-                endTime: new Date(Date.now() + 8 * 60 * 60 * 1000), // Example shift duration
+                endTime: new Date(Date.now() + 8 * 60 * 60 * 1000), // Example 8-hour shift
             });
         }
     }
@@ -29,31 +31,32 @@ export const linkedDutyScheduling = async () => {
 
     return assignments;
 };
-
 export const unlinkedDutyScheduling = async () => {
     const crews = await prisma.crew.findMany();
     const buses = await prisma.bus.findMany();
-    
-    // Queue-based system for rotations
-    const queue = [...crews];
-    const assignments: { crewId: string; busId: string; startTime: Date; endTime: Date; }[] = [];
+    const routes = await prisma.route.findMany();  // Fetch available routes
+
+    const queue = [...crews];  // Queue-based system for rotating crews
+    const assignments: { crewId: string; busId: string; routeId: string; startTime: Date; endTime: Date; }[] = [];
 
     for (let bus of buses) {
         if (queue.length > 0) {
             const crew = queue.shift();
+            const route = routes[Math.floor(Math.random() * routes.length)];  // Randomly assign a route to the bus
 
-            if (crew) {
+            if (crew && route) {
                 assignments.push({
-                    crewId: crew.id,  // Use string ID
-                    busId: bus.id,    // Use string ID
+                    crewId: crew.id,
+                    busId: bus.id,
+                    routeId: route.id,  // Assign the route ID
                     startTime: new Date(),
-                    endTime: new Date(Date.now() + 2 * 60 * 60 * 1000), // Example shorter trip duration
+                    endTime: new Date(Date.now() + 2 * 60 * 60 * 1000), // Example shorter 2-hour trip
                 });
 
-                // Rotate the crew back into the queue after a rest period
+                // Rotate the crew back into the queue after their rest period
                 setTimeout(() => {
                     queue.push(crew);
-                }, 30 * 60 * 1000); // Example rest period
+                }, 30 * 60 * 1000);  // Example 30-minute rest period
             }
         }
     }

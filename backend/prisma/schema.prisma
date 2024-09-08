@@ -10,8 +10,10 @@ datasource db {
 model Route {
   id          String   @id @default(uuid())
   name        String
-  coordinates String   // Assuming you're storing GeoJSON as a string
+  path        String    // Assuming you're storing GeoJSON as a string
   buses       Bus[]
+
+  Assignment Assignment[]
 }
 
 model Bus {
@@ -20,25 +22,55 @@ model Bus {
   routeId     String?
   route       Route?      @relation(fields: [routeId], references: [id])
 
-  crews       Crew[]
+  crews       Crew[] @relation("BusCrews")
+
   assignments Assignment[]
+
+  Crew Crew[]
 }
 
 model Crew {
-  id          String      @id @default(uuid())
-  name        String
+  id          String     @id @default(uuid())
+  driver      Driver     @relation(fields: [driverId], references: [id])
+  driverId    String
+  conductor   Conductor  @relation(fields: [conductorId], references: [id])
+  conductorId String
+  bus         Bus?       @relation(fields: [busId], references: [id])
   busId       String?
-  bus         Bus?        @relation(fields: [busId], references: [id])
 
-  assignments Assignment[]
+  Assignment Assignment[]
+
+  Bus Bus[] @relation("BusCrews")
 }
+model Driver {
+  id   String @id @default(uuid())
+  name String @unique
+
+  Crew Crew[]
+}
+
+model Conductor {
+  id   String @id @default(uuid())
+  name String @unique
+
+  Crew Crew[]
+}
+
+
 
 model Assignment {
   id          String   @id @default(uuid())
   crewId      String
   busId       String
+  routeId     String    // New field for route
   startTime   DateTime
   endTime     DateTime
+
   crew        Crew      @relation(fields: [crewId], references: [id])
   bus         Bus       @relation(fields: [busId], references: [id])
+  route       Route     @relation(fields: [routeId], references: [id])  // New relation to Route
+
+  @@index([crewId], map: "crew_idx")
+  @@index([busId], map: "bus_idx")
+  @@index([routeId], map: "route_idx")  // Optional index for faster lookup
 }

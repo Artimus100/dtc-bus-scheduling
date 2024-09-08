@@ -1,17 +1,25 @@
-import React from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+// src/components/Map.tsx
+import React, { useEffect } from 'react';
+import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
 const Map: React.FC = () => {
-  return (
-    <MapContainer center={[28.6139, 77.2090]} zoom={12} style={{ height: "400px", width: "100%" }}>
-      <TileLayer
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-      />
-      {/* Add Markers and Routes Here */}
-    </MapContainer>
-  );
+  useEffect(() => {
+    const map = L.map('map').setView([51.505, -0.09], 13);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+    }).addTo(map);
+
+    // Example of adding a route
+    const route = L.polyline([[51.5, -0.09], [51.51, -0.1]], { color: 'blue' }).addTo(map);
+
+    return () => {
+      map.remove();
+    };
+  }, []);
+
+  return <div id="map" style={{ height: '500px' }} />;
 };
 
 export default Map;

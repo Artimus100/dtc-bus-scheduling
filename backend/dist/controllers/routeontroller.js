@@ -10,12 +10,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.checkRouteOverlaps = exports.listRoutes = exports.createNewRoute = void 0;
+exports.findRoutesHandler = exports.getRoutesHandler = exports.createRouteHandler = exports.listRoutes = exports.createNewRoute = void 0;
 const routeService_1 = require("../services/routeService");
 const createNewRoute = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { name, coordinates } = req.body;
-        const route = yield (0, routeService_1.createRoute)(name, coordinates);
+        const { name, path } = req.body;
+        const route = yield (0, routeService_1.createRoute)(name, path);
         res.status(201).json(route);
     }
     catch (error) {
@@ -33,13 +33,37 @@ const listRoutes = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     }
 });
 exports.listRoutes = listRoutes;
-const checkRouteOverlaps = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const createRouteHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { name, path } = req.body;
     try {
-        const overlaps = yield (0, routeService_1.detectRouteOverlaps)();
-        res.status(200).json(overlaps);
+        const route = yield (0, routeService_1.createRoute)(name, path);
+        res.status(201).json(route);
     }
     catch (error) {
-        res.status(500).json({ error: 'Error detecting route overlaps' });
+        console.error(error); // Log the error for debugging
+        res.status(500).json({ error: 'Error creating route' });
     }
 });
-exports.checkRouteOverlaps = checkRouteOverlaps;
+exports.createRouteHandler = createRouteHandler;
+const getRoutesHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const routes = yield (0, routeService_1.getRoutes)(); // Implement this function in your service
+        res.status(200).json(routes);
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error fetching routes' });
+    }
+});
+exports.getRoutesHandler = getRoutesHandler;
+const findRoutesHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { geoJson } = req.body;
+    try {
+        const routes = yield (0, routeService_1.findRoutesIntersectingWith)(geoJson);
+        res.status(200).json(routes);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Error finding intersecting routes' });
+    }
+});
+exports.findRoutesHandler = findRoutesHandler;
