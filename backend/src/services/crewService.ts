@@ -4,32 +4,37 @@ const prisma = new PrismaClient();
 
 export const createCrew = async (driverName: string, conductorName: string, busId?: string) => {
     try {
-        // Find or create the driver
+        // Ensure driverName and conductorName are not undefined or empty
+        if (!driverName || !conductorName) {
+            throw new Error("Driver name and conductor name must be provided");
+        }
+
+        // Upsert the driver
         const driver = await prisma.driver.upsert({
-            where: { name: driverName }, // Use unique field for lookup
-            update: {}, // No update needed
-            create: { name: driverName },
+            where: { name: driverName },
+            update: {}, // No updates needed
+            create: { name: driverName }, // Create if not found
         });
 
-        // Find or create the conductor
+        // Upsert the conductor
         const conductor = await prisma.conductor.upsert({
-            where: { name: conductorName }, // Use unique field for lookup
-            update: {}, // No update needed
-            create: { name: conductorName },
+            where: { name: conductorName },
+            update: {}, // No updates needed
+            create: { name: conductorName }, // Create if not found
         });
 
-        // Create a new crew entry with optional bus relation
-        // const newCrew = await prisma.crew.create({
-        //     data: {
-        //         driverId: driver.id,
-        //         conductorId: conductor.id,
-        //         bus: busId ? { connect: { id: busId } } : undefined, // Correct way to handle optional relation
-        //     },
-        // });
+        // Create the crew and optionally link to a bus
+        const newCrew = await prisma.crew.create({
+            data: {
+                driverId: driver.id,
+                conductorId: conductor.id,
+                busId: busId || undefined, // Optional linking to bus
+            },
+        });
 
-        // return newCrew;
+        return newCrew;
     } catch (error) {
         console.error('Error in createCrew:', error);
-        throw error; // Re-throw the error to be caught by the controller
+        throw error; // Rethrow to be handled by higher-level handler
     }
 };

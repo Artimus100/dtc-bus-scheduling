@@ -10,27 +10,39 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createCrew = void 0;
-// src/services/crewService.ts
 const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
-const createCrew = (name, busId) => __awaiter(void 0, void 0, void 0, function* () {
+const createCrew = (driverName, conductorName, busId) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        // Optional: Validate if busId exists
-        if (busId) {
-            const bus = yield prisma.bus.findUnique({
-                where: { id: busId },
-            });
-            if (!bus) {
-                throw new Error('Bus not found');
-            }
+        // Ensure driverName and conductorName are not undefined or empty
+        if (!driverName || !conductorName) {
+            throw new Error("Driver name and conductor name must be provided");
         }
-        return yield prisma.crew.create({
-            data: { name, busId },
+        // Upsert the driver
+        const driver = yield prisma.driver.upsert({
+            where: { name: driverName },
+            update: {}, // No updates needed
+            create: { name: driverName }, // Create if not found
         });
+        // Upsert the conductor
+        const conductor = yield prisma.conductor.upsert({
+            where: { name: conductorName },
+            update: {}, // No updates needed
+            create: { name: conductorName }, // Create if not found
+        });
+        // Create the crew and optionally link to a bus
+        const newCrew = yield prisma.crew.create({
+            data: {
+                driverId: driver.id,
+                conductorId: conductor.id,
+                busId: busId || undefined, // Optional linking to bus
+            },
+        });
+        return newCrew;
     }
     catch (error) {
         console.error('Error in createCrew:', error);
-        throw error; // Re-throw the error to be caught by the controller
+        throw error; // Rethrow to be handled by higher-level handler
     }
 });
 exports.createCrew = createCrew;

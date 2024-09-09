@@ -13,8 +13,10 @@ exports.createNewCrew = void 0;
 const crewService_1 = require("../services/crewService");
 const createNewCrew = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { name, busId } = req.body;
-        const crew = yield (0, crewService_1.createCrew)(name, busId);
+        // Extract conductor's and driver's names from request body
+        const { driverName, conductorName, busId } = req.body;
+        // Call the service to create the crew with driver and conductor details
+        const crew = yield (0, crewService_1.createCrew)(driverName, conductorName, busId);
         res.status(201).json(crew);
     }
     catch (error) {

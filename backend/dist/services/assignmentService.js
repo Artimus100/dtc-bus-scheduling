@@ -17,9 +17,17 @@ const assignCrewToBus = (crewId, busId, routeId, startTime, endTime) => __awaite
         // Validate crew existence
         const crew = yield prisma.crew.findUnique({
             where: { id: crewId },
+            include: {
+                driver: true,
+                conductor: true
+            }
         });
         if (!crew) {
             throw new Error('Crew not found');
+        }
+        // Ensure both driver and conductor are assigned
+        if (!crew.driver || !crew.conductor) {
+            throw new Error('Crew must have both a driver and a conductor assigned');
         }
         // Validate bus existence
         const bus = yield prisma.bus.findUnique({

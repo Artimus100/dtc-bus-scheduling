@@ -10,6 +10,7 @@
   "description": "",
   "dependencies": {
     "@prisma/client": "^5.19.0",
+    "@radix-ui/react-tabs": "^1.1.0",
     "@types/cors": "^2.8.17",
     "cors": "^2.8.5",
     "express": "^4.19.2",

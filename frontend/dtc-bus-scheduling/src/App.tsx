@@ -6,7 +6,10 @@ import CustomButton from './components/CustomButton';
 import Chart from './components/Chart';
 import RealTimeUpdates from './components/RealTimeUpdates';
 import Dashboard from './components/Dashboard';
-
+import CrewManagement from './components/CrewManagement';
+import BusHandover from './components/BusHandover';
+import RouteOverlapChecker from './components/RouteOverlapChecker';
+import RouteManagement from './components/RouteManagement';
 const App: React.FC = () => {
   const handleButtonClick = () => {
     console.log('Button clicked!');
@@ -34,7 +37,11 @@ const App: React.FC = () => {
                 <RealTimeUpdates />
               </div>
             </div>} />
+            <Route path="/overlap" element={<RouteOverlapChecker />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/crewManagement" element={<CrewManagement/>} />
+            <Route path="/busHandover" element={<BusHandover/>} />
+            <Route path="/routManagement" element={<RouteManagement/>} />
           </Routes>
         </main>
       </div>
